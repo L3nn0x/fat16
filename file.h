@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   inode.h                                            :+:      :+:    :+:   */
+/*   file.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: availlan <availlan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2014/12/03 09:21:51 by availlan          #+#    #+#             */
-/*   Updated: 2014/12/03 09:27:53 by availlan         ###   ########.fr       */
+/*   Updated: 2014/12/03 10:03:45 by availlan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,10 @@
 
 #include <string.h>
 
-typedef struct	s_inode
+typedef struct	s_file
 {
-	struct s_inode	*parent;
-	struct s_inode	**leaves;
-	size_t			nbEntries;
+	struct s_file	*parent;
+	struct s_file	*leaf;
 	char			filename[8];
 	char			extension[3];
 	size_t			size;
@@ -29,6 +28,8 @@ typedef struct	s_inode
 	unsigned char	permissions;
 	uint16_t		dateModified;
 	uint16_t		timeModified;
-}				t_inode;
+	struct s_file	*next;
+	struct s_file	*prev;
+}				t_file;
 
 #endif /* !INODE_H */
