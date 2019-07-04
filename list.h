@@ -1,62 +1,59 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   list.h                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: availlan <availlan@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2014/12/03 10:11:35 by availlan          #+#    #+#             */
-/*   Updated: 2014/12/03 10:46:58 by availlan         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#ifndef __LIST__
+#define __LIST__
 
 
-#ifndef LIST_H
-# define LIST_H
-
-struct list_head
-{
-	struct list_head *next, *prev;
+struct list_head {
+    struct list_head *next, *prev;
 };
 
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
-#define LIST_HEAD(name) struct list_head name = LIST_HEAD_INIT(name)
+
+#define LIST_HEAD(name) \
+    struct list_head name = LIST_HEAD_INIT(name)
 
 static inline void INIT_LIST_HEAD(struct list_head *list)
 {
-	list->next = list;
-	list->prev = list;
+    list->next = list;
+    list->prev = list;
 }
 
-static inline void list_add(struct list_¨head *head struct list_head *new)
+static inline void list_add(struct list_head *new, struct list_head *head)
 {
-	new->next = head->next;
-	new->prev = head;
-	head->next->prev = new;
-	head->next = new;
+    new->next = head->next;
+    new->prev = head;
+    head->next->prev = new;
+    head->next = new;
 }
 
-static inline void list_del(struct list_head *del)
+static inline void list_del(struct list_head *p)
 {
-	del->next->prev = del->prev;
-	del->prev->next = del->next;
-	del->prev = 0;
-	del->next = 0;
+    p->next->prev = p->prev;
+    p->prev->next = p->next;
+    p->next = 0;
+    p->prev = 0;
 }
 
-static inline int list_empty(struct list_head *head)
+static inline int list_empty(const struct list_head *head)
 {
-	return head->next == head->prev;
+    return head->next == head;
 }
 
-#define list_entry(ptr, type, member) (type*)((char*)ptr - (char*)&((type*)0)->member)
+#define list_entry(ptr, type, member) \
+    (type*) ((char*) ptr - (char*) &((type*)0)->member)
 
-#define list_first_entry(head, type, member) list_entry((head)->next, type, member)
+#define list_first_entry(head, type, member) \
+    list_entry((head)->next, type, member)
 
-#define list_for_each(head, p) for (p = (head)->next; p != (head); p = p->next)
+#define list_for_each(p, head) \
+    for (p = (head)->next; p != (head); p = p->next)
 
-#define list_for_each_safe(head, p, n) for (p = (head)->next, n = p->next; p != (head); p = n, n = p->next)
+#define list_for_each_safe(p, n, head) \
+    for (p = (head)->next, n = p->next; p != (head); p = n, n = n->next)
 
-#define list_for_each_entry(head, p, member) for (p = list_entry((head)->next, typeof(*p), member); &p->member != (head);
+#define list_for_each_entry(p, head, member)                \
+    for (p = list_entry((head)->next, typeof(*p), member);      \
+         &p->member != (head);                  \
+         p = list_entry(p->member.next, typeof(*p), member))    \
 
-#endif /* !LIST_H */
+
+#endif  /* __LIST__ */
