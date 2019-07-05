@@ -6,79 +6,80 @@
 #include "list.h"
 
 struct PhysicalBootBlock {
-    uint8_t     bootstrap[3];
-    uint8_t     manufacturerDescription[8];
-    uint16_t    bytesPerBlock;
-    uint8_t     blocksPerAllocationUnit;
-    uint16_t    reservedBlocks;
-    uint8_t     fatNumber;
-    uint16_t    rootDirectoryEntries;
-    uint16_t    totalNumberOfBlocks;
-    uint8_t     mediaDescriptor;
-    uint16_t    blocksPerFat;
-    uint16_t    blocksPerTrack;
-    uint16_t    numberOfHeads;
-    uint32_t    hiddenBlocks;
-    uint32_t    totalNumberOfBlocksBig;
-    uint16_t    physicalDriveNumber;
-    uint8_t     extendedBootRecordSignature;
-    uint32_t    volumeSerialNumber;
-    uint8_t     volumeLabel[11];
-    uint8_t     fileSystemIdentifier[8];
+	uint8_t		bootstrap[3];
+	uint8_t		manufacturerDescription[8];
+	uint16_t	bytesPerBlock;
+	uint8_t		blocksPerAllocationUnit;
+	uint16_t	reservedBlocks;
+	uint8_t		fatNumber;
+	uint16_t	rootDirectoryEntries;
+	uint16_t	totalNumberOfBlocks;
+	uint8_t		mediaDescriptor;
+	uint16_t	blocksPerFat;
+	uint16_t	blocksPerTrack;
+	uint16_t	numberOfHeads;
+	uint32_t	hiddenBlocks;
+	uint32_t	totalNumberOfBlocksBig;
+	uint16_t	physicalDriveNumber;
+	uint8_t		extendedBootRecordSignature;
+	uint32_t	volumeSerialNumber;
+	uint8_t		volumeLabel[11];
+	uint8_t		fileSystemIdentifier[8];
 } __attribute__((packed));
 
 struct Device {
-    char    manufacturerDescription[9];
-    int     bytesPerBlock;
-    int     blocksPerAllocationUnit;
-    int     numberOfFat;
-    int     totalNumberOfRootEntries;
-    int     totalNumberOfBlocks;
-    int     sizeOfFat;
-    int     volumeSerialNumber;
-    char    volumeLabel[12];
-    int     rootDirectoryStartBlock;
-    int     dataStartBlock;
+	char	manufacturerDescription[9];
+	int		bytesPerBlock;
+	int		blocksPerAllocationUnit;
+	int		numberOfFat;
+	int		totalNumberOfRootEntries;
+	int		totalNumberOfBlocks;
+	int		sizeOfFat;
+	int		volumeSerialNumber;
+	char	volumeLabel[12];
+	int		rootDirectoryStartBlock;
+	int		dataStartBlock;
 
-    uint16_t *fat;
-    struct PhysicalBootBlock *physicalBootBlock;
+	uint16_t *fat;
+
+	struct PhysicalBootBlock *physicalBootBlock;
 };
 
 struct PhysicalDirectoryEntry {
-    uint8_t     filename[8];
-    uint8_t     filenameExtension[3];
-    uint8_t     fileAttributes;
-    uint8_t     reserved[10];
-    uint16_t    timeCreatedUpdated;
-    uint16_t    dateCreatedUpdated;
-    uint16_t    startingCluster;
-    uint32_t    fileSize;
+	uint8_t		filename[8];
+	uint8_t		filenameExtension[3];
+	uint8_t		fileAttributes;
+	uint8_t		reserved[10];
+	uint16_t	timeCreatedUpdated;
+	uint16_t	dateCreatedUpdated;
+	uint16_t	startingCluster;
+	uint32_t	fileSize;
 } __attribute__((packed));
 
 FILE *hdd = 0;
 
 void driverRead(uint32_t position, void *ptr, uint32_t size) {
-    fseek(hdd, position, SEEK_SET);
-    fread(ptr, size, 1, hdd);
+	fseek(hdd, position, SEEK_SET);
+	fread(ptr, size, 1, hdd);
 }
 
 void driverWrite(uint32_t position, void *ptr, uint32_t size) {
-    fseek(hdd, position, SEEK_SET);
-    fwrite(ptr, size, 1, hdd);
+	fseek(hdd, position, SEEK_SET);
+	fwrite(ptr, size, 1, hdd);
 }
 
 void copyStringFromDisk(char dest[], uint8_t src[], uint32_t size) {
-    memcpy(dest, src, size);
-    int i = size - 1;
-    while (i >= 0 && dest[i] == ' ')
-        dest[i--] = '\0';
+	memcpy(dest, src, size);
+	int i = size - 1;
+	while (i >= 0 && dest[i] == ' ')
+		dest[i--] = '\0';
 }
 
 void copyStringToDisk(uint8_t dest[], char src[], uint32_t size) {
-    memcpy(dest, src, size);
-    int i = size - 1;
-    while (i >= 0 && dest[i] == '\0')
-        dest[i--] = ' ';
+	memcpy(dest, src, size);
+	int i = size - 1;
+	while (i >= 0 && dest[i] == '\0')
+		dest[i--] = ' ';
 }
 
 struct Device* openDevice() {
@@ -109,11 +110,11 @@ struct Device* openDevice() {
 
 void flushDevice(struct Device* device) {
     struct PhysicalBootBlock *tmp = device->physicalBootBlock;
-    copyStringToDisk(tmp->volumeLabel, device->volumeLabel, sizeof(tmp->volumeLabel));
-    driverWrite(0, tmp, sizeof(*tmp));
-    for (int i = 0; i < device->numberOfFat; ++i) {
-        driverWrite(device->bytesPerBlock + i * device->sizeOfFat, device->fat,
-                device->sizeOfFat);
+	copyStringToDisk(tmp->volumeLabel, device->volumeLabel, sizeof(tmp->volumeLabel));
+	driverWrite(0, tmp, sizeof(*tmp));
+	for (int i = 0; i < device->numberOfFat; ++i) {
+		driverWrite(device->bytesPerBlock + i * device->sizeOfFat, device->fat,
+				device->sizeOfFat);
     }
 }
 
@@ -127,24 +128,25 @@ struct File {
     struct PhysicalDirectoryEntry *entry;
     struct Device *device;
     char *name;
-    short   isReadOnly;
-    short   isHidden;
-    short   isSystemFile;
-    short   isSpecialEntry;
-    short   isDirectory;
-    short   isParentDirectory;
-    short   archive;
-    int     hours;
-    int     minutes;
-    int     seconds;
-    int     year;
-    int     month;
-    int     day;
+	short	isReadOnly;
+	short	isHidden;
+	short	isSystemFile;
+	short	isSpecialEntry;
+	short	isDirectory;
+	short	isParentDirectory;
+	short	archive;
+	int		hours;
+	int		minutes;
+	int		seconds;
+	int		year;
+	int		month;
+	int		day;
     char *mmap;
     int size;
     int entryPosition;
     int startingDataCluster;
     int isRoot;
+
     struct File* parent;
     struct list_head leaf;
     struct list_head sibling;
@@ -158,25 +160,25 @@ struct File *physicalToFile(struct PhysicalDirectoryEntry *entry, struct Device*
     file->isRoot = 0;
     char filename[9] = {0};
     char ext[4] = {0};
-    switch (entry->filename[0]) {
-        case 0x00:
-        case 0xe5:
+	switch (entry->filename[0]) {
+		case 0x00:
+		case 0xe5:
             free(file);
             return 0;
-        case 0x05:
-            copyStringFromDisk(filename, entry->filename, sizeof(entry->filename));
-            filename[0] = 0xe5;
-            break;
-        case 0x2e:
-            file->isDirectory = 1;
-            if (entry->filename[1] == 0x2e)
-                file->isParentDirectory = 1;
-            copyStringFromDisk(filename, entry->filename + 1, sizeof(entry->filename) - 1);
-            break;
-        default:
-            copyStringFromDisk(filename, entry->filename, sizeof(entry->filename));
-            break;
-    }
+		case 0x05:
+			copyStringFromDisk(filename, entry->filename, sizeof(entry->filename));
+			filename[0] = 0xe5;
+			break;
+		case 0x2e:
+			file->isDirectory = 1;
+			if (entry->filename[1] == 0x2e)
+				file->isParentDirectory = 1;
+			copyStringFromDisk(filename, entry->filename + 1, sizeof(entry->filename) - 1);
+			break;
+		default:
+			copyStringFromDisk(filename, entry->filename, sizeof(entry->filename));
+			break;
+	}
     copyStringFromDisk(ext, entry->filenameExtension, sizeof(entry->filenameExtension));
     file->name = malloc(strlen(filename) + strlen(ext) + 1);
     if (strlen(ext)) {
@@ -184,43 +186,36 @@ struct File *physicalToFile(struct PhysicalDirectoryEntry *entry, struct Device*
     } else {
         strcpy(file->name, filename);
     }
-    if (entry->fileAttributes & 0x1)
-        file->isReadOnly = 1;
-    if (entry->fileAttributes & 0x2)
-        file->isHidden = 1;
-    if (entry->fileAttributes & 0x4)
-        file->isSystemFile = 1;
-    if (entry->fileAttributes & 0x8)
-        file->isSpecialEntry = 1;
-    if (entry->fileAttributes & 0x10)
-        file->isDirectory = 1;
-    if (entry->fileAttributes & 0x20)
-        file->archive = 1;
-    file->hours = (entry->timeCreatedUpdated & 0xF000) >> 11;
-    file->minutes = (entry->timeCreatedUpdated & 0x7E0) >> 5;
-    file->seconds = (entry->timeCreatedUpdated & 0x1F) * 2;
-    file->year = (entry->dateCreatedUpdated & 0xFE00) >> 9;
-    file->month = (entry->dateCreatedUpdated & 0x1E0) >> 5;
-    file->day = entry->dateCreatedUpdated & 0x1F;
-    file->size = entry->fileSize;
-    if (file->size <= 0)
-        return file;
+	if (entry->fileAttributes & 0x1)
+		file->isReadOnly = 1;
+	if (entry->fileAttributes & 0x2)
+		file->isHidden = 1;
+	if (entry->fileAttributes & 0x4)
+		file->isSystemFile = 1;
+	if (entry->fileAttributes & 0x8)
+		file->isSpecialEntry = 1;
+	if (entry->fileAttributes & 0x10)
+		file->isDirectory = 1;
+	if (entry->fileAttributes & 0x20)
+		file->archive = 1;
+	file->hours = (entry->timeCreatedUpdated & 0xF000) >> 11;
+	file->minutes = (entry->timeCreatedUpdated & 0x7E0) >> 5;
+	file->seconds = (entry->timeCreatedUpdated & 0x1F) * 2;
+	file->year = (entry->dateCreatedUpdated & 0xFE00) >> 9;
+	file->month = (entry->dateCreatedUpdated & 0x1E0) >> 5;
+	file->day = entry->dateCreatedUpdated & 0x1F;
+	file->size = entry->fileSize;
     file->mmap = 0;
     file->startingDataCluster = entry->startingCluster;
-     file->parent = 0;
+
+    file->parent = 0;
     INIT_LIST_HEAD(&file->leaf);
     INIT_LIST_HEAD(&file->sibling);
     return file;
 }
 
-struct File *readFileEntry(struct Device *device, uint32_t position) {
-    struct PhysicalDirectoryEntry* entry = malloc(sizeof(*entry));
-    driverRead(position, entry, sizeof(*entry));
-    return physicalToFile(entry, device, position);
-}
-
 void readFile(struct File* file) {
-    if (file->mmap != 0) {
+    if (file->mmap != 0 || !file->size) {
         return;
     }
     file->mmap = malloc(file->size);
@@ -241,7 +236,7 @@ void cleanUpFile(struct File* file) {
     free(file->entry);
     free(file->name);
     if (file->mmap) {
-       free(file->mmap);
+        free(file->mmap);
         file->mmap = 0;
     }
     list_del(&file->leaf);
@@ -249,11 +244,29 @@ void cleanUpFile(struct File* file) {
     free(file);
 }
 
+void openFile(struct File* file) {
+    readFile(file);
+}
+
+void closeFile(struct File* file) {
+    if (file->mmap) {
+        free(file->mmap);
+        file->mmap = 0;
+    }
+}
+
+void flushFile(struct File* file);
+
 void deleteFile(struct File* file) {
+    if (file->isRoot) {
+        return;
+    }
     struct PhysicalDirectoryEntry entry;
     bzero(&entry, sizeof(entry));
-     uint16_t *fat = file->device->fat;
-     int allocationUnits = file->size / (file->device->blocksPerAllocationUnit * file->device->bytesPerBlock)
+
+    uint16_t *fat = file->device->fat;
+
+    int allocationUnits = file->size / (file->device->blocksPerAllocationUnit * file->device->bytesPerBlock)
         + (file->size % (file->device->blocksPerAllocationUnit * file->device->bytesPerBlock) > 0);
     while (allocationUnits--) {
         int current = file->startingDataCluster;
@@ -262,22 +275,35 @@ void deleteFile(struct File* file) {
         fat[current] = 0;
     }
 
-    driverWrite(file->entryPosition, &entry, sizeof(entry));
+    int close = 0;
+    if (!file->parent->mmap) {
+        openFile(file->parent);
+        close = 1;
+    }
+    file->parent->size -= sizeof(entry);
+    memmove(&(file->parent->mmap[file->entryPosition * sizeof(entry)]),
+            &(file->parent->mmap[(1 + file->entryPosition) * sizeof(entry)]),
+            file->parent->size - file->entryPosition * sizeof(entry));
+    flushFile(file->parent);
+    if (close) {
+        closeFile(file->parent);
+    }
+
     flushDevice(file->device);
     cleanUpFile(file);
 }
 
 void flushFile(struct File* file) {
     if (file->isRoot) {
-        // nothing to update for root
+        // only copy mmap
+        driverWrite(file->device->rootDirectoryStartBlock * file->device->bytesPerBlock, file->mmap, file->size);
         return;
     }
     struct PhysicalDirectoryEntry *entry = file->entry;
-     // if there is a mmap, update fat + data blocks
+
+    // if there is a mmap, update fat + data blocks
     if (file->mmap) {
         if (!file->size) {
-            // we don't allow zero-sized files
-            deleteFile(file);
             return;
         }
         int oldAllocationUnits = entry->fileSize / (file->device->blocksPerAllocationUnit * file->device->bytesPerBlock)
@@ -320,17 +346,17 @@ void flushFile(struct File* file) {
             currentCluster = fat[currentCluster];
         } while (totalBytesWritten < file->size && currentCluster != 0xFFFF);
     }
-    
+
     char filename[8];
     memset(filename, ' ', sizeof(filename));
     char ext[3];
     memset(ext, ' ', sizeof(ext));
     char* tmp = strchr(file->name, '.');
     if (tmp) {
-        strcpy(ext, tmp + 1);
-        strncpy(filename, file->name, tmp - file->name);
+        memcpy(ext, tmp + 1, strlen(tmp+1) > sizeof(ext) ? sizeof(ext) : strlen(tmp + 1));
+        memcpy(filename, file->name, tmp - file->name);
     } else {
-        strcpy(filename, file->name);
+        memcpy(filename, file->name, strlen(file->name) > sizeof(filename) ? sizeof(filename) : strlen(file->name));
     }
 
     if (filename[0] == 0xe5) {
@@ -362,20 +388,19 @@ void flushFile(struct File* file) {
     entry->fileAttributes = attrs;
     entry->timeCreatedUpdated = time;
     entry->dateCreatedUpdated = date;
-    
-    driverWrite(file->entryPosition, entry, sizeof(*entry));
-    flushDevice(file->device);
-}
 
-void openFile(struct File* file) {
-    readFile(file);
-}
-
-void closeFile(struct File* file) {
-    if (file->mmap) {
-        free(file->mmap);
-        file->mmap = 0;
+    int close = 0;
+    if (!file->parent->mmap) {
+        openFile(file->parent);
+        close = 1;
     }
+    memcpy(&(file->parent->mmap[file->entryPosition * sizeof(*entry)]), entry, sizeof(*entry));
+    flushFile(file->parent);
+    if (close) {
+        closeFile(file->parent);
+    }
+
+    flushDevice(file->device);
 }
 
 struct File* isCachedFile(struct File* dir, char *filename) {
@@ -397,11 +422,11 @@ void getDirEntries(struct File* dir) {
         offload = 1;
         readFile(dir);
     }
+
     for (int i = 0; i < dir->size / sizeof(struct PhysicalDirectoryEntry); ++i) {
         struct PhysicalDirectoryEntry *entry = malloc(sizeof(*entry));
         memcpy(entry, &(dir->mmap[i * sizeof(*entry)]), sizeof(*entry));
-        struct File * file = physicalToFile(entry, dir->device,
-                i * sizeof(*entry) + dir->startingDataCluster * dir->device->bytesPerBlock);
+        struct File * file = physicalToFile(entry, dir->device, i);
         if (!file) {
             break;
         }
@@ -422,14 +447,13 @@ struct File* openRoot(struct Device* device) {
     struct File* file = malloc(sizeof(*file));
     bzero(file, sizeof(*file));
     file->device = device;
-    file->startingDataCluster = device->rootDirectoryStartBlock;
     file->size = device->totalNumberOfRootEntries * sizeof(struct PhysicalDirectoryEntry);
     file->name = strdup("/");
     file->isRoot = 1;
     file->isDirectory = 1;
     file->parent = file;
     file->mmap = malloc(file->size);
-    driverRead(file->startingDataCluster * device->bytesPerBlock, file->mmap, file->size);
+    driverRead(device->rootDirectoryStartBlock * device->bytesPerBlock, file->mmap, file->size);
     INIT_LIST_HEAD(&file->leaf);
     getDirEntries(file);
     INIT_LIST_HEAD(&file->sibling);
@@ -460,7 +484,80 @@ struct File* pathToFile(struct File* root, char* path) {
     return root;
 }
 
-struct File* addFile(struct Device* device, char *path, int isDir) {
+char *fileToPath(struct File* file) {
+    char res[512] = {0};
+
+    char *tmp;
+    if (!file->isRoot) {
+       tmp = fileToPath(file->parent); 
+       strcpy(res, tmp);
+       strcpy(res + strlen(tmp), file->name);
+       res[strlen(tmp) + strlen(file->name)] = '/';
+    } else {
+        return strdup(file->name);
+    }
+
+    return strdup(res);
+}
+
+struct File* addFile(struct File* root, char *path, int isDir) {
+    char* res = strrchr(path, '/');
+    char parent[512];
+    char name[512];
+    if (!res) {
+        parent[0] = '.';
+        parent[1] = '\0';
+        strcpy(name, path);
+    } else {
+        memcpy(parent, path, res - path);
+        parent[res - path] = '\0';
+        strncpy(name, path, (int)(res - path));
+    }
+    root = pathToFile(root, parent);
+    struct PhysicalDirectoryEntry* entry = malloc(sizeof(*entry));
+    bzero(entry, sizeof(*entry));
+    struct File* file = malloc(sizeof(*file));
+    bzero(file, sizeof(*file));
+    file->entry = entry;
+    file->device = root->device;
+    file->name = strdup(name);
+    file->isDirectory = isDir;
+
+    getDirEntries(root);
+
+    struct list_head* leaf;
+    int index = 0;
+    list_for_each(leaf, &root->leaf) {
+        ++index;
+    }
+    file->entryPosition = index;
+
+    // assign a cluster
+    int nextFree = 2;
+    while (root->device->fat[nextFree] != 0) nextFree++;
+    root->device->fat[nextFree] = 0xFFFF;
+    file->startingDataCluster = nextFree;
+    entry->startingCluster = nextFree;
+    file->parent = root;
+    INIT_LIST_HEAD(&file->leaf);
+    list_add(&file->sibling, &root->leaf);
+    flushDevice(root->device);
+
+    // update parent mmap
+    int close = 0;
+    if (!root->mmap) {
+        openFile(root);
+        close = 1;
+    }
+    root->size += sizeof(*entry);
+    root->mmap = realloc(root->mmap, root->size);
+    flushFile(file);
+    flushFile(root);
+    if (close) {
+        closeFile(root);
+    }
+
+    return file;
 }
 
 int main(int argc, char* argv[]) {
@@ -468,15 +565,16 @@ int main(int argc, char* argv[]) {
         printf("Error, missing argument. Usage %s <filename>\n", argv[0]);
         return 1;
     }
-    hdd = fopen(argv[1], "rb+");
+	hdd = fopen(argv[1], "rb+");
 
-    struct Device *device = openDevice();
-
-    char path[256] = "/";
+	struct Device *device = openDevice();
 
     struct File* root = openRoot(device);
+    struct File* current = root;
 
     while (1) {
+        char *path = fileToPath(current);
+
         printf("%s > ", path);
         char input[256];
         if (!fgets(input, sizeof(input), stdin)) {
@@ -493,7 +591,7 @@ int main(int argc, char* argv[]) {
         }
         if (!strcmp(split, "LS")) {
             struct File* leaf;
-            list_for_each_entry(leaf, &root->leaf, sibling) {
+            list_for_each_entry(leaf, &current->leaf, sibling) {
                 printf("%s (%c) (%d)\n", leaf->name, leaf->isDirectory ? 'd' : 'f', leaf->size);
             }
         } else if (!strcmp(split, "EXIT")) {
@@ -504,7 +602,7 @@ int main(int argc, char* argv[]) {
                 printf("cat: usage cat <filename>\n");
                 continue;
             }
-            struct File* leaf = pathToFile(root, filename);
+            struct File* leaf = pathToFile(current, filename);
             if (!leaf) {
                 printf("cat: %s: not such file or directory\n", filename);
             } else {
@@ -526,7 +624,7 @@ int main(int argc, char* argv[]) {
                 printf("edit: usage edit <filename> <text>\n");
                 continue;
             }
-            struct File* leaf = pathToFile(root, filename);
+            struct File* leaf = pathToFile(current, filename);
             if (!leaf) {
                 printf("edit: %s: not such file or directory\n", filename);
             } else {
@@ -538,7 +636,7 @@ int main(int argc, char* argv[]) {
                 flushFile(leaf);
                 closeFile(leaf);
             }
-      } else if (!strcmp(split, "FILL")) {
+        } else if (!strcmp(split, "FILL")) {
             char *filename = strtok(0, " ");
             if (!filename) {
                 printf("fill: usage fill <filename> <size> <char>\n");
@@ -554,7 +652,7 @@ int main(int argc, char* argv[]) {
                 printf("fill: usage fill <filename> <size> <char>\n");
                 continue;
             }
-            struct File* leaf = pathToFile(root, filename);
+            struct File* leaf = pathToFile(current, filename);
             if (!leaf) {
                 printf("fill: %s: not such file or directory\n", filename);
             } else {
@@ -567,30 +665,52 @@ int main(int argc, char* argv[]) {
                 flushFile(leaf);
                 closeFile(leaf);
             }
-        } else if (!strcmp(split, "DELETE")) {
+        } else if (!strcmp(split, "RM")) {
             char *filename = strtok(0, " ");
             if (!filename) {
-                printf("delete: usage delete <filename>\n");
+                printf("rm: usage rm <filename>\n");
                 continue;
             }
-            struct File* leaf = pathToFile(root, filename);
+            struct File* leaf = pathToFile(current, filename);
             if (!leaf) {
                 printf("delete: %s: not such file or directory\n", filename);
             } else {
                 openFile(leaf);
                 deleteFile(leaf);
             }
+        } else if (!strcmp(split, "TOUCH")) {
+            char *filename = strtok(0, " ");
+            if (!filename) {
+                printf("touch: usage touch <filename>\n");
+                continue;
+            }
+            addFile(current, filename, 0);
+        } else if (!strcmp(split, "MKDIR")) {
+            char *filename = strtok(0, " ");
+            if (!filename) {
+                printf("mkdir: usage mkdir <filename>\n");
+                continue;
+            }
+            addFile(current, filename, 1);
+        } else if (!strcmp(split, "CD")) {
+            char *filename = strtok(0, " ");
+            if (!filename) {
+                printf("cd: usage cd <filename>\n");
+                continue;
+            }
+            current = pathToFile(current, filename);
         } else {
             printf("Unrecognized command\n");
         }
+        free(path);
     }
-    
+
     flushFile(root);
     cleanUpFile(root);
 
     flushDevice(device);
-    closeDevice(device);
+	closeDevice(device);
 
-    fclose(hdd);
-    return 0;
+	fclose(hdd);
+	return 0;
 }
