@@ -315,8 +315,18 @@ void flushFile(struct File* file) {
         if (allocationUnits > oldAllocationUnits) {
             int diff = allocationUnits - oldAllocationUnits;
             int current = file->startingDataCluster;
-            while (fat[current] != 0xFFFF) current = fat[current];
-            int nextFree = 2;
+		    if (current) {
+                while (fat[current] != 0xFFFF) current = fat[current];
+            } else {
+                --diff;
+                int nextFree = 3;
+                while (fat[nextFree++] != 0);
+                current = nextFree - 1;
+                fat[current] = 0xFFFF;
+                file->startingDataCluster = current;
+                file->startingCluster = current;
+            }
+            int nextFree = 3;
             while (diff) {
                 if (fat[nextFree] == 0) {
                     fat[nextFree] = 0xFFFF;
@@ -532,16 +542,10 @@ struct File* addFile(struct File* root, char *path, int isDir) {
     }
     file->entryPosition = index;
 
-    // assign a cluster
-    int nextFree = 2;
-    while (root->device->fat[nextFree] != 0) nextFree++;
-    root->device->fat[nextFree] = 0xFFFF;
-    file->startingDataCluster = nextFree;
-    entry->startingCluster = nextFree;
+    file->startingDataCluster = entry->startingCluster = 0;
     file->parent = root;
     INIT_LIST_HEAD(&file->leaf);
     list_add(&file->sibling, &root->leaf);
-    flushDevice(root->device);
 
     // update parent mmap
     int close = 0;
@@ -552,7 +556,6 @@ struct File* addFile(struct File* root, char *path, int isDir) {
     root->size += sizeof(*entry);
     root->mmap = realloc(root->mmap, root->size);
     flushFile(file);
-    flushFile(root);
     if (close) {
         closeFile(root);
     }
@@ -699,6 +702,7 @@ int main(int argc, char* argv[]) {
                 continue;
             }
             current = pathToFile(current, filename);
+            getDirEntries(current);
         } else {
             printf("Unrecognized command\n");
         }
