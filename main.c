@@ -248,14 +248,15 @@ void openFile(struct File* file) {
     readFile(file);
 }
 
+void flushFile(struct File* file);
+
 void closeFile(struct File* file) {
     if (file->mmap) {
+	flushFile(file);
         free(file->mmap);
         file->mmap = 0;
     }
 }
-
-void flushFile(struct File* file);
 
 void deleteFile(struct File* file) {
     if (file->isRoot) {
@@ -568,9 +569,9 @@ int main(int argc, char* argv[]) {
         printf("Error, missing argument. Usage %s <filename>\n", argv[0]);
         return 1;
     }
-	hdd = fopen(argv[1], "rb+");
+    hdd = fopen(argv[1], "rb+");
 
-	struct Device *device = openDevice();
+    struct Device *device = openDevice();
 
     struct File* root = openRoot(device);
     struct File* current = root;
@@ -594,7 +595,17 @@ int main(int argc, char* argv[]) {
         }
         if (!strcmp(split, "LS")) {
             struct File* leaf;
-            list_for_each_entry(leaf, &current->leaf, sibling) {
+            struct File* c = current;
+            char *filename = strtok(0, " ");
+            if (filename) {
+                c = pathToFile(current, filename);
+                if (!c) {
+                    printf("ls: %s: no such file or directory\n", filename);
+                    continue;
+                }
+                getDirEntries(c);
+            }
+            list_for_each_entry(leaf, &c->leaf, sibling) {
                 printf("%s (%c) (%d)\n", leaf->name, leaf->isDirectory ? 'd' : 'f', leaf->size);
             }
         } else if (!strcmp(split, "EXIT")) {
@@ -636,7 +647,6 @@ int main(int argc, char* argv[]) {
                 leaf->size += strlen(text);
                 leaf->mmap = realloc(leaf->mmap, leaf->size);
                 strcpy(&(leaf->mmap[oldSize]), text);
-                flushFile(leaf);
                 closeFile(leaf);
             }
         } else if (!strcmp(split, "FILL")) {
@@ -665,7 +675,6 @@ int main(int argc, char* argv[]) {
                 leaf->size += size;
                 leaf->mmap = realloc(leaf->mmap, leaf->size);
                 memset(&(leaf->mmap[oldSize]), c[0], size);
-                flushFile(leaf);
                 closeFile(leaf);
             }
         } else if (!strcmp(split, "RM")) {
@@ -709,8 +718,7 @@ int main(int argc, char* argv[]) {
         free(path);
     }
 
-    flushFile(root);
-    cleanUpFile(root);
+    closeFile(root);
 
     flushDevice(device);
 	closeDevice(device);
