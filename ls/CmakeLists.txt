@@ -1,0 +1,9 @@
+project(ls)
+
+add_executable(ls
+    main.c
+)
+
+include_directories(../kernel)
+
+target_link_libraries(ls kernel)
