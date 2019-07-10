@@ -473,8 +473,7 @@ struct File* openRoot(struct Device* device) {
 
 struct File* pathToFile(struct File* root, char* path) {
     char* tmp = strdup(path);
-    char* next = strtok(tmp, "/");
-    while (next) {
+    for (char *next = strtok(tmp, "/"); next; next = strtok(0, "/")) {
         if (!root->isDirectory) {
             free(tmp);
             return 0;
@@ -490,7 +489,6 @@ struct File* pathToFile(struct File* root, char* path) {
                 return 0;
             }
         }
-        next = strtok(0, "/");
     }
     return root;
 }
