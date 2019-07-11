@@ -10,11 +10,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    init(argv[1]);
-
     if (fork()) {
-        execl("ls/ls", argv[1]);
+        execl("ls/ls", "ls/ls", argv[1]);
     } else {
+	init(argv[1]);
         deinit();
     }
 	return 0;
