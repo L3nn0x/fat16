@@ -11,7 +11,18 @@ int main(int argc, char* argv[]) {
 
     init(argv[1]);
 
-    int fd = my_open("FILE.TXT", MY_O_READ);
+    MY_DIR* dir = my_opendir(argv[2]);
+    if (!dir) {
+        printf("Error: %s\n", my_errno);
+        return -1;
+    }
+    struct my_dirent* entry;
+    while ((entry = my_readdir(dir)) != 0) {
+        printf("%s (%c)\n", entry->d_name, entry->d_type == MY_DT_DIR ? 'd' : 'f');
+    }
+    my_closedir(dir);
+
+    /*int fd = my_open("FILE.TXT", MY_O_READ);
     if (fd == -1) {
         printf("Error: %s\n", my_errno);
         return -1;
@@ -33,7 +44,7 @@ int main(int argc, char* argv[]) {
     while ((entry = my_readdir(dir)) != 0) {
         printf("%s (%c)\n", entry->d_name, entry->d_type == MY_DT_DIR ? 'd' : 'f');
     }
-    my_closedir(dir);
+    my_closedir(dir);*/
 
     deinit();
 	return 0;
